@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crop Recommendation</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f0f0;
+        margin: 0;
+        padding: 20px;
+    }
+    .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+        text-align: center;
+    }
+    label {
+        font-weight: bold;
+    }
+    input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        margin: 8px 0;
+        box-sizing: border-box;
+    }
+    button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+        width: 100%;
+    }
+    button:hover {
+        background-color: #45a049;
+    }
+    #output {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Crop Recommendation</h1>
+    <form id="recommendationForm">
+        <label for="nitrogen">Nitrogen (ppm):</label>
+        <input type="number" id="nitrogen" name="nitrogen" min="0" required><br>
+        
+        <label for="phosphorus">Phosphorus (ppm):</label>
+        <input type="number" id="phosphorus" name="phosphorus" min="0" required><br>
+        
+        <label for="potassium">Potassium (ppm):</label>
+        <input type="number" id="potassium" name="potassium" min="0" required><br>
+        
+        <label for="temperature">Temperature (°C):</label>
+        <input type="number" id="temperature" name="temperature" required><br>
+        
+        <label for="humidity">Humidity (%):</label>
+        <input type="number" id="humidity" name="humidity" required><br>
+        
+        <label for="ph">pH:</label>
+        <input type="number" id="ph" name="ph" step="0.1" required><br>
+        
+        <label for="rainfall">Rainfall (mm/month):</label>
+        <input type="number" id="rainfall" name="rainfall" required><br>
+        
+        <button type="submit">Recommend Crop</button>
+    </form>
+    
+    <div id="output"></div>
+</div>
+
+<script>
+    document.getElementById("recommendationForm").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        // Get input values
+        var nitrogen = parseFloat(document.getElementById("nitrogen").value);
+        var phosphorus = parseFloat(document.getElementById("phosphorus").value);
+        var potassium = parseFloat(document.getElementById("potassium").value);
+        var temperature = parseFloat(document.getElementById("temperature").value);
+        var humidity = parseFloat(document.getElementById("humidity").value);
+        var ph = parseFloat(document.getElementById("ph").value);
+        var rainfall = parseFloat(document.getElementById("rainfall").value);
+
+        // Perform crop recommendation
+        var recommendedCrop = recommendCrop(nitrogen, phosphorus, potassium, temperature, humidity, ph, rainfall);
+
+        // Display recommendation
+        var outputElement = document.getElementById("output");
+        outputElement.innerHTML = "<p>Recommended Crop: " + recommendedCrop + "</p>";
+    });
+
+    // Function to recommend crop based on input conditions
+    function recommendCrop(nitrogen, phosphorus, potassium, temperature, humidity, ph, rainfall) {
+        // Define optimal ranges for each crop's growth conditions
+        var crops = [
+            { name: "Rice", temperatureRange: [20, 35], humidityRange: [60, 90], phRange: [5.5, 7.0], rainfallRange: [100, 300], nitrogenMin: 30, phosphorusMin: 15, potassiumMin: 50 },
+            { name: "Wheat", temperatureRange: [15, 25], humidityRange: [50, 70], phRange: [6.0, 7.5], rainfallRange: [200, 400], nitrogenMin: 20, phosphorusMin: 10, potassiumMin: 30 },
+            { name: "Maize", temperatureRange: [25, 35], humidityRange: [70, 90], phRange: [5.8, 7.2], rainfallRange: [150, 350], nitrogenMin: 40, phosphorusMin: 20, potassiumMin: 60 },
+            { name: "Sorghum", temperatureRange: [25, 30], humidityRange: [50, 60], phRange: [5.5, 7.5], rainfallRange: [500, 700], nitrogenMin: 25, phosphorusMin: 20, potassiumMin: 30 },
+            { name: "Barley", temperatureRange: [12, 25], humidityRange: [40, 55], phRange: [6.0, 7.5], rainfallRange: [200, 250], nitrogenMin: 25, phosphorusMin: 10, potassiumMin: 20 },
+            { name: "Groundnut", temperatureRange: [25, 30], humidityRange: [60, 65], phRange: [5.3, 6.3], rainfallRange: [500, 1000], nitrogenMin: 10, phosphorusMin: 7, potassiumMin: 10 },
+            { name: "Sugarcane", temperatureRange: [20, 40], humidityRange: [70, 80], phRange: [6.0, 7.5], rainfallRange: [1000, 1500], nitrogenMin: 50, phosphorusMin: 25, potassiumMin: 60 },
+            { name: "Cotton", temperatureRange: [21, 30], humidityRange: [50, 80], phRange: [5.8, 8.0], rainfallRange: [600, 1000], nitrogenMin: 20, phosphorusMin: 15, potassiumMin: 20 }
+            // Add more crops and their conditions as needed
+        ];
+
+        // Check conditions for each crop and recommend the best match
+        var bestCrop = "No specific recommendation based on provided conditions";
+        var maxScore = -1;
+
+        crops.forEach(function(crop) {
+            var score = 0;
+
+            // Check if inputs fall within optimal ranges
+            if (temperature >= crop.temperatureRange[0] && temperature <= crop.temperatureRange[1]) {
+                score++;
+            }
+            if (humidity >= crop.humidityRange[0] && humidity <= crop.humidityRange[1]) {
+                score++;
+            }
+            if (ph >= crop.phRange[0] && ph <= crop.phRange[1]) {
+                score++;
+            }
+            if (rainfall >= crop.rainfallRange[0] && rainfall <= crop.rainfallRange[1]) {
+                score++;
+            }
+            if (nitrogen >= crop.nitrogenMin && phosphorus >= crop.phosphorusMin && potassium >= crop.potassiumMin) {
+                score++;
+            }
+
+            // Update best crop recommendation
+            if (score > maxScore) {
+                maxScore = score;
+                bestCrop = crop.name;
+            }
+        });
+
+        return bestCrop;
+    }
+</script>
+
+</body>
+</html>
